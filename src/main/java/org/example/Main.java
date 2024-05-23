@@ -1,290 +1,215 @@
 package org.example;
 
-import java.util.InputMismatchException;
 import java.util.Random;
 import java.util.Scanner;
 
 public class Main {
-    private static int LENGTH_BOARD = 10 , POINTS = 25; // pontos totais equivalem ao número de slots de barcos espalhados no tabuleiro.
+    private static int numberOfShips[] = new int[]{5, 3, 2, 2}, lengthOfShips[] = new int[]{1, 2, 3, 4}, points = 0, points2 = 0, total = 0;
+    private static final int LENGTH_BOARD = 10, POINTS = TotalPoints();
     private static Scanner s = new Scanner(System.in);
     private static Random r = new Random();
-    private static String letters[] = new String[]{"S", "F", "C", "D"}, UNCHARTED = "?", SEA = "~";
-    private static String legendas[] = new String[]{"null", "Modo de jogo: " , "null" , "[ "+UNCHARTED+" ] - Área obscura\n" ,"[ "+SEA+" ] - Mar\n", "[ "+letters[0]+" ] - Submarino\n", "[ "+letters[1]+" ] - Fragata\n", "[ "+letters[2]+" ] - Corveta\n", "[ "+letters[3]+" ] - Destroyer\n", "null"};
+    private static final String[] colors = new String[]{
+            "\u001B[0m",            // [0] - Reset
+            "\u001B[1;35m",         // [1] - Magenta Bold
+            "\u001B[1;31m",         // [2] - Vermelho Bold
+            "\u001B[1;33m",         // [3] - Amarelo Bold
+            "\u001B[1;32m",         // [4] - Verde Bold
+            "\u001B[1;36m",         // [5] - Ciano Bold
+            "\u001B[1;92m",         // [6] - Verde Claro Bold
+            "\u001B[1;34m",         // [7] - Azul Bold
+            "\u001B[1;1m",         // [8] - Fúcsia Bold
+            "\u001B[1;37m"          // [9] - Branco Bold
+    };
+    private static final String LETTERS[] = new String[]{colors[1] + "S" + colors[0], colors[3] + "F" + colors[0], colors[6] + "C" + colors[0], colors[7] + "D" + colors[0]}, UNCHARTED = colors[9] + "?" + colors[0], SEA = colors[5] + "~" + colors[0], MISS = "!", ALF[] = new String[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}, divider = colors[9] +"+---+---+---+---+---+---+---+---+---+---+"+ colors[0], pipe = colors[9] +"|"+ colors[0];
+    private static String legendas[] = new String[]{"null", "Modo de jogo: ", "null", "[ " + UNCHARTED + " ] - Área obscura\n", "[ " + SEA + " ] - Mar\n", "[ " + LETTERS[0] + " ] - Submarino\n", "[ " + LETTERS[1] + " ] - Fragata\n", "[ " + LETTERS[2] + " ] - Corveta\n", "[ " + LETTERS[3] + " ] - Destroyer\n", "null"};
     private static String board[][] = new String[LENGTH_BOARD][LENGTH_BOARD], board2[][] = new String[LENGTH_BOARD][LENGTH_BOARD];
     private static String fakeBoard[][] = new String[LENGTH_BOARD][LENGTH_BOARD], fakeBoard2[][] = new String[LENGTH_BOARD][LENGTH_BOARD];
-    private static  String nameBots[] = new String[]{"Máquina", "Robô", "Pirata", "Marujo"}, p1 = "", p2 = ""; // ships[] = new String[]{"submarino", "fragata", "corveta", "destroyer"},
+    private static String nameBots[] = new String[]{"Máquina", "Robô", "Pirata", "Marujo"}, ships[] = new String[]{"um Submarino", "uma Fragata", "uma Corveta", "um Destroyer"}, p1 = "", p2 = "", gameMode = "";
+    private static boolean turn = true;
 
+    private static int TotalPoints() {
+        for (int i = 0; i < lengthOfShips.length; i++) {
+            total += lengthOfShips[i] * numberOfShips[i];
+        }
+        return total;
+    }
     public static void main(String[] args) {
-        boolean vez = true, playing = true, changeMode = true;//String submarino = "S", fragata = "F", corveta = "C",destroyer = "D";// String ships[] = new String[]{"submarino", "fragata", "corveta", "destroyer"};
-        int numberOfShips[] = new int[]{5, 3, 2, 2}, lengthOfShips[] = new int[]{1, 2, 3, 4};
-        int points = 0, points2 = 0;
+        boolean playing = true;
         StartBoard();
-        AllocateShips(vez, numberOfShips, lengthOfShips);
-        while(changeMode) {
-            System.out.printf("[ R ] - Joagador x Máquina\n[ M ] - Jogador x Jogador\nOpção: ");
-            String modo = s.next().toUpperCase();
-            switch (modo) {
+        AllocateShips(board); AllocateShips(board2);
+        ChooseMode(playing, turn);
+    }
+    public static void ChooseMode(boolean playing, boolean turn) {
+        while (true) {
+            System.out.printf("[ R ] - Player x Machine\n[ M ] - Player x Player\nOption: ");
+            switch (s.next().toUpperCase()) {
                 case "R":
-                    changeMode = false;
-                    int n = r.nextInt(0, 3);
-                    p2 = nameBots[n];
-                    legendas[1] += "Jogador vs Máquina\n";
-                    PlayAgainMachine(playing, vez, points, points2);
+                    gameMode = colors[4] + "Player x Machine" + colors[0];
+                    legendas[1] += gameMode + "\n";
+                    ChooseNamePlayers();
+                    PlayGame(playing, turn);
                     break;
                 case "M":
-                    changeMode = false;
-                    legendas[1] += "Multijogador\n";
-                    PlayMultiplyer(vez, playing, points, points2);
+                    gameMode = "Player x Player";
+                    legendas[1] += gameMode + "\n";
+                    ChooseNamePlayers();
+                    PlayGame(playing, turn);
                     break;
-                default: System.out.println("Opção incorreta!!");
+                default:
+                    System.out.println("Option incorrect!!");
             }
+        }
+    }
+    public static void ChooseNamePlayers() {
+        System.out.printf("Enter the name of the 1st user: ");
+        p1 = s.next();
+        if (gameMode.contains("Machine")) p2 = nameBots[r.nextInt(nameBots.length)];
+        else {
+            System.out.printf("Enter the name of the 2nd user: ");
+            p2 = s.next();
         }
     }
     public static void StartBoard() {
-        for(int i = 0; i < LENGTH_BOARD; ++i) {
-            for(int j = 0; j < LENGTH_BOARD; ++j) {
-                board[i][j] = UNCHARTED; board2[i][j] = UNCHARTED;
-                fakeBoard[i][j] = UNCHARTED; fakeBoard2[i][j] = UNCHARTED;
+        for (int i = 0; i < LENGTH_BOARD; ++i) {
+            for (int j = 0; j < LENGTH_BOARD; ++j) {
+                board[i][j] = UNCHARTED;
+                board2[i][j] = UNCHARTED;
+                fakeBoard[i][j] = UNCHARTED;
+                fakeBoard2[i][j] = UNCHARTED;
             }
         }
     }
-    public static void ViewBord(boolean vez, int points, int points2) {
-        System.out.printf("     A   B   C   D   E   F   G   H   I   J\n   +---+---+---+---+---+---+---+---+---+---+\n");
-        for(int i = 0; i < LENGTH_BOARD; ++i) {
-            System.out.printf("%d  ", i);
-            for(int j = 0; j < LENGTH_BOARD; ++j) {
-                if (vez) {
-                    System.out.printf("| %s ", fakeBoard[i][j]);
-                } else {
-                    System.out.printf("| %s ", fakeBoard2[i][j]);
-                }
-            }
+    public static String ScoreBoard(){
+        return p1 + " - [ " + colors[3] + points + colors[0] + " ] vs [ " + colors[3] + points2 + colors[0] + " ] - " + p2;
+    }
+    public static void ViewBoard(String b[][]) {
+        System.out.printf(colors[3] + "%s's turn\n" + colors[0], turn ? p1 : p2);
+        System.out.println(colors[8] + "     A   B   C   D   E   F   G   H   I   J" + colors[0] + "\n   "+ divider);
+        for (int i = 0; i < LENGTH_BOARD; i++) {
+            System.out.printf(colors[8] + i + colors[0] + "  ");
+            for (int j = 0; j < LENGTH_BOARD; j++)
+                System.out.printf(pipe +" %s ", b[i][j]);
             if (!legendas[i].equals("null") || legendas[i].contains("Modo de jogo")) {
-                System.out.printf("| %s   +---+---+---+---+---+---+---+---+---+---+\n", legendas[i]);
+                System.out.printf(pipe + colors[8] + " %s   \n" + colors[0], legendas[i] +"   "+ divider);
             } else if (i == 2) {
-                System.out.printf("| %s - [ %d ] vs [ %d ] - %s\n   +---+---+---+---+---+---+---+---+---+---+\n", p1, points, points2, p2);
+                System.out.print(pipe +" "+ ScoreBoard() +"\n   "+ divider +"\n");
             } else if (legendas[i].equals("null")) {
-                System.out.printf("|\n   +---+---+---+---+---+---+---+---+---+---+\n");
+                System.out.printf(pipe +"\n   "+ divider +"\n");
             }
         }
     }
-    public static void PlayAgainMachine(boolean playing, boolean vez, int points, int points2) {
-        System.out.printf("Informe o nome do 1º jogador: ");
-        p1 = s.next();
-        System.out.printf("Seu oponente é o(a) %s!\n", p2);
-        while (playing) {
-            if(points == POINTS) {
-                System.out.printf("Parabéns %s, você venceu!\n", p1);
-                playing = false;
-            }else if(points2 == 25){// os pontos dependerá do número de slots de barcos espalahados no tabuleiro.
-                System.out.printf("Parabéns %s, você venceu!\n", p2);
-                playing = false;
-            }
-            else if (vez) {
-                System.out.printf("Vez de %s!\n", p1);
-                ViewBord(vez, points, points2);
-                System.out.print("Informe a coordenada x: ");
-                int x = 0;
-                try{
-                    x = s.nextInt();
-                }catch (InputMismatchException e) {
-                    System.out.println("Posição inválida! Informe um número válido!");
-                }
-                System.out.print("Informe a coordenada y: ");
-                String y = s.next().toUpperCase();
-                LetterToNumber(y);
-                if((x > 9 || x < 0) || (LetterToNumber(y) == -1)){
-                    System.out.println("Posição inválida!");
-                }else if(ShootTheShip(vez, x, y)){
-                    System.out.printf("Continue jogando!\n");
-                    points++;
-                }else{
-                    vez = !vez;
-                }
-            }else {
-                System.out.printf("Vez de %s!\n", p2);
-                ViewBord(vez, points, points2);
-                int x = r.nextInt(0,LENGTH_BOARD);
-                String alf = "ABCDEFGHIJ"; int index = r.nextInt(0,LENGTH_BOARD);
-                String y = String.valueOf(alf.charAt(index));
-                if(ShootTheShip(vez, x, y)){
-                    System.out.printf("Continue jogando!\n");
-                    points2++;
-                }else{
-                    vez = true;
+    public static void AllocateShips(String b[][]) {
+        for (int i = 0; i < LETTERS.length; i++) {
+            for (int j = 0; j < numberOfShips[i]; j++) {
+                boolean shipPlaced = false;
+                while (!shipPlaced) {
+                    int x = r.nextInt(0, LENGTH_BOARD);
+                    int y = r.nextInt(0, LENGTH_BOARD);
+                    boolean position = r.nextBoolean();
+                    int length = lengthOfShips[i];
+                    if (CanAllocate(x, y, position, length, b)) {
+                        for (int k = 0; k < length; k++) {
+                            int row = position ? x + k : x;
+                            int column = position ? y : y + k;
+                            b[row][column] = LETTERS[i];
+                        }shipPlaced = true;
+                    }
                 }
             }
-        }
+        }numberOfShips = new int[]{5, 3, 2, 2};
     }
-    public static void PlayMultiplyer(boolean vez, boolean playing, int points, int points2) {
-        System.out.printf("Informe o nome do 1º jogador: ");
-        p1 = s.next();
-        System.out.printf("Informe o nome do 2º jogador: ");
-        p2 = s.next();
-        while(playing) {
-            if(points == POINTS) {
-                System.out.printf("Parabéns %s, você venceu!\n", p1);
-                playing = false;
-            }else if(points2 == POINTS){// os pontos dependerá do número de slots de barcos espalahados no tabuleiro.
-                System.out.printf("Parabéns %s, você venceu!\n", p2);
-                playing = false;
-            }
-            else if (vez) {
-                System.out.printf("Vez de %s!\n", p1);
-                ViewBord(vez, points, points2);
-                System.out.print("Informe a coordenada x: ");
-                int x = 0;
-                try{
-                    x = s.nextInt();
-                }catch (InputMismatchException e) {
-                    System.out.println("Posição inválida! Informe um número válido!");
-                }
-                System.out.print("Informe a coordenada y: ");
-                String y = s.next().toUpperCase();
-                LetterToNumber(y);
-                if((x > 9 || x < 0) || (LetterToNumber(y) == -1)){
-                    System.out.println("Posição inválida!");
-                }else if(ShootTheShip(vez, x, y) && (points < POINTS)){
-                    System.out.printf("Continue jogando!\n");
-                    points++;
-                }else{
-                    vez = !vez;
-                }
-            }else {
-                System.out.printf("Vez de %s!\n", p2);
-                ViewBord(vez, points, points2);
-                System.out.print("Informe a coordenada x: ");
-                int x = 0;
-                try{
-                    x = s.nextInt();
-                }catch (InputMismatchException e) {
-                    System.out.println("Posição inválida! Informe um número válido!");
-                }
-                System.out.print("Informe a coordenada y: ");
-                String y = String.valueOf(s.next().charAt(0)).toUpperCase();
-                if((x > 9 || x < 0) || (LetterToNumber(y) == -1)){
-                    System.out.println("Posição inválida!");
-                }else if(ShootTheShip(vez, x, y) && (points2 < POINTS)){
-                    System.out.printf("Continue jogando!\n");
-                    points2++;
-                }else{
-                    vez = true;
-                }
-            }
-        }
-    }
-    public static boolean ShootTheShip(boolean vez, int x, String y) {
-        if(vez){
-            if((fakeBoard[x][LetterToNumber(y)] == "~") || (fakeBoard[x][LetterToNumber(y)] == "S") || (fakeBoard[x][LetterToNumber(y)] == "F") || (fakeBoard[x][LetterToNumber(y)] == "C") || (fakeBoard[x][LetterToNumber(y)] == "D")){
-                System.out.printf("Alvo já atingido!\n");return false;
-            }
-            else if(board[x][LetterToNumber(y)].equals("?")){
-                System.out.printf("%s errou o tiro!\n", p1);
-                fakeBoard[x][LetterToNumber(y)] = "~";return false;
-            } else if (board[x][LetterToNumber(y)].equals("S")){
-                fakeBoard[x][LetterToNumber(y)] = "S";
-                System.out.printf("%s acertou um submarino!\n",p1);
-            } else if(board[x][LetterToNumber(y)].equals("F")){
-                fakeBoard[x][LetterToNumber(y)] = "F";
-                System.out.printf("%s acertou uma fragata!\n",p1);
-            } else if(board[x][LetterToNumber(y)].equals("C")){
-                fakeBoard[x][LetterToNumber(y)] = "C";
-                System.out.printf("%s acertou uma corveta!\n",p1);
-            } else if(board[x][LetterToNumber(y)].equals("D")){
-                fakeBoard[x][LetterToNumber(y)] = "D";
-                System.out.printf("%s acertou um destroyer!\n", p1);
-            }
-        }else{
-            if((fakeBoard2[x][LetterToNumber(y)] == "~") || (fakeBoard2[x][LetterToNumber(y)] == "S") || (fakeBoard2[x][LetterToNumber(y)] == "F") || (fakeBoard2[x][LetterToNumber(y)] == "C") || (fakeBoard2[x][LetterToNumber(y)] == "D")){
-                System.out.printf("Alvo já atingido!\n");return false;// dependendo da situação, pode ser que o jogador perca a vez, por isso o return false
-            }
-            else if(board2[x][LetterToNumber(y)].equals("?")){
-                System.out.printf("%s errou o tiro!\n", p2);
-                fakeBoard2[x][LetterToNumber(y)] = "~";return false;
-            } else if (board2[x][LetterToNumber(y)].equals("S")){
-                fakeBoard2[x][LetterToNumber(y)] = "S";
-                System.out.printf("%s acertou um submarino!\n",p2);
-            } else if(board2[x][LetterToNumber(y)].equals("F")){
-                fakeBoard2[x][LetterToNumber(y)] = "F";
-                System.out.printf("%s acertou uma fragata!\n",p2);
-            } else if(board2[x][LetterToNumber(y)].equals("C")){
-                fakeBoard2[x][LetterToNumber(y)] = "C";
-                System.out.printf("%s acertou uma corveta!\n",p2);
-            } else if(board2[x][LetterToNumber(y)].equals("D")){
-                fakeBoard2[x][LetterToNumber(y)] = "D";
-                System.out.printf("%s acertou um destroyer!\n", p2);
+    public static boolean CanAllocate(int x, int y, boolean position, int length, String b[][]) {
+        String[][] targetBoard = b;
+        for (int i = 0; i < length; i++) {
+            int row = position ? x + i : x;
+            int column = position ? y : y + i;
+            if ((row >= LENGTH_BOARD) || (column >= LENGTH_BOARD) || (!targetBoard[row][column].equals(UNCHARTED))) {
+                return false;
             }
         }return true;
     }
-    public static int LetterToNumber(String y){
-        String alf = "ABCDEFGHIJ";
-        for (int i = 0; i < alf.length(); i++) {
-            if(alf.charAt(i) == y.charAt(0)){
-                return i;
+    public static void PlayGame(boolean playing, boolean turn) {
+        while ((points != POINTS) || (points2 != POINTS)) {
+            int x = 0, yIndex = 0;
+            String y = "", target = "", fakeTarget = "";
+            ViewBoard(turn ? fakeBoard : fakeBoard2);
+            if (turn) {
+                System.out.printf("%s enter the coordinate X: ", turn ? p1 : p2);
+                x = s.nextInt();
+
+                System.out.printf("%s enter the coordinate Y: ", turn ? p1 : p2);
+                y = s.next().toUpperCase();
+
+                if (LetterToNumber(y) != -1) {
+                    target = board[x][LetterToNumber(y)];
+                    fakeTarget = fakeBoard[x][LetterToNumber(y)];
+                } else if (LetterToNumber(y) == -1) {
+                    System.out.printf("Position invalid!!\n");
+                }
+            } else if (gameMode.contains("Machine")) {
+                x = r.nextInt(0, LENGTH_BOARD);
+                yIndex = r.nextInt(0, LENGTH_BOARD);
+                y = ALF[yIndex];
+                System.out.printf("%s shoot in the coordinate X: %d and Y: %s\n", p2, x, y);
+                target = board2[x][yIndex];
+                fakeTarget = fakeBoard2[x][yIndex];
+
+            } else {
+                System.out.printf("%s enter the coordinate X: ", turn ? p1 : p2);
+                x = s.nextInt();
+                System.out.printf("%s enter the coordinate Y: ", turn ? p1 : p2);
+                y = s.next().toUpperCase();
             }
-        }return -1;
+            if (LetterToNumber(y) != -1) {
+                target = turn ? board[x][LetterToNumber(y)] : board2[x][LetterToNumber(y)];
+                fakeTarget = turn ? fakeBoard[x][LetterToNumber(y)] : fakeBoard2[x][LetterToNumber(y)];
+
+            } else {
+                System.out.printf("Position invalid!!\n");
+            }
+            String shotResult = Shoot(target, fakeTarget);
+            if (shotResult.equals(MISS)) {
+                System.out.printf("%s hit the sea(%s)!!\n", turn ? p1 : p2, shotResult);
+                System.out.printf("%s choose another coordinate!!\n", turn ? p1 : p2);
+            } else if (shotResult.equals(SEA)) {
+                System.out.printf("%s hit the %s!!\n", turn ? p1 : p2, SEA);
+                if (turn) {
+                    fakeBoard[x][LetterToNumber(y)] = SEA;
+                    turn = !turn;
+                } else {
+                    fakeBoard2[x][LetterToNumber(y)] = SEA;
+                    turn = true;
+                }
+            } else {
+                if (turn) {
+                    fakeBoard[x][LetterToNumber(y)] = target;
+                    points++;
+                } else {
+                    fakeBoard2[x][LetterToNumber(y)] = target;
+                    points2++;
+                }System.out.printf("%s hit the %s!!\n", turn ? p1 : p2, GetNameShip(target));
+            }
+        }System.out.printf("%s won the game!!", points == POINTS ? p1 : p2);
     }
-    public static void AllocateShips(boolean vez, int[] numberOfShips, int[] lengthOfShips) {
-        for (int i = 0; i < letters.length; i++) {
-            for (int j = 0; j < numberOfShips[i]; j++) {
-                boolean shipPlaced = false;
-                while (!shipPlaced) {
-                    int x = r.nextInt(0,LENGTH_BOARD);
-                    int y = r.nextInt(0,LENGTH_BOARD);
-                    boolean position = r.nextBoolean();
-                    int length = lengthOfShips[i];
-                    if (CanAllocate(x, y, position, length, vez)) {
-                        if (position) {
-                            for (int k = x; k < length + x; k++) {
-                                board[k][y] = letters[i];
-                            }
-                        } else {
-                            for (int k = y; k < length + y; k++) {
-                                board[x][k] = letters[i];
-                            }
-                        }shipPlaced = true;
-                    }
-                }
-            }
-        }
-        for (int i = 0; i < letters.length; i++) {
-            for (int j = 0; j < numberOfShips[i]; j++) {
-                boolean shipPlaced = false;
-                while (!shipPlaced) {
-                    int x = r.nextInt(0,LENGTH_BOARD);
-                    int y = r.nextInt(0,LENGTH_BOARD);
-                    boolean position = r.nextBoolean();
-                    int length = lengthOfShips[i];
-                    if (CanAllocate(x, y, position, length, !vez)) {
-                        if (position) {
-                            for (int k = x; k < length + x; k++) {
-                                board2[k][y] = letters[i];
-                            }
-                        } else {
-                            for (int k = y; k < length + y; k++) {
-                                board2[x][k] = letters[i];
-                            }
-                        }shipPlaced = true;
-                    }
-                }
-            }
-        }
+    public static int LetterToNumber(String y) {
+        for (int i = 0; i < ALF.length; i++)
+            if (y.equals(ALF[i])) return i;
+        return -1;
     }
-    public static boolean CanAllocate(int x, int y, boolean position, int length, boolean vez) {
-        if (position && length + x <= LENGTH_BOARD) {
-            for (int j = x; j < length + x; j++) {
-                if ((board[j][y] != "?" && vez)||(board2[j][y] != "?" && !vez)) {
-                    return false;
-                }
-            }return true;
-        } else if (!position && length + y <= LENGTH_BOARD) {
-            for (int j = y; j < length + y; j++) {
-                if ((board[x][j] != "?" && vez)||(board2[x][j] != "?" && !vez)) {
-                    return false;
-                }
-            }
+    public static String Shoot(String target, String fakeTarget) {
+        if (target.equals(UNCHARTED)) {
+            return SEA;
+        } else if (fakeTarget.equals(SEA)) {
+            return MISS;
         } else {
-            return false;
-        }return true;
+            return target;
+        }
+    }
+    public static String GetNameShip(String target) {
+        for (int i = 0; i < LETTERS.length; i++) {
+            if (target.equals(LETTERS[i])) {
+                return ships[i];
+            }
+        }return null;
     }
 }
