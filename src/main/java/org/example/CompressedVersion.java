@@ -10,7 +10,7 @@ public class CompressedVersion {
     private static Scanner s = new Scanner(System.in);
     private static Random r = new Random();
     private static final String[] colors = new String[]{"\u001B[0m", "\u001B[1;35m", "\u001B[1;31m", "\u001B[1;33m", "\u001B[1;32m", "\u001B[1;36m", "\u001B[1;92m", "\u001B[1;34m", "\u001B[1;1m", "\u001B[1;37m"}; // [0] - Reset, [1] - Magenta Bold, [2] - Vermelho Bold, [3] - Amarelo Bold, [4] - Verde Bold, [5] - Ciano Bold, [6] - Verde Claro Bold, [7] - Azul Bold, [8] - Fúcsia Bold, [9] - Branco Bold.
-    private static final String UNCHARTED = colors[9] + "?" + colors[0], SEA = colors[5] + "~" + colors[0],  divider = colors[9] +"+---+---+---+---+---+---+---+---+---+---+"+ colors[0], pipe = colors[9] +"|"+ colors[0];
+    private static final String UNCHARTED = colors[9] + "?" + colors[0], SEA = colors[5] + "~" + colors[0],  divider = colors[9] +"+---+---+---+---+---+---+---+---+---+---+"+ colors[0], pipe = colors[9] +"|"+ colors[0], spaceLetters = "     ";
     private static final String LETTERS[] = new String[]{colors[1] + "S" + colors[0], colors[3] + "F" + colors[0], colors[6] + "C" + colors[0], colors[7] + "D" + colors[0]}, MISS = "!", ALF[] = new String[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
     private static String subtitles[] = new String[]{"null", "Modo de jogo: ", "null", "[ " + UNCHARTED + " ] - Área obscura", "[ " + SEA + " ] - Mar", "[ " + LETTERS[0] + " ] - Submarino", "[ " + LETTERS[1] + " ] - Fragata", "[ " + LETTERS[2] + " ] - Corveta", "[ " + LETTERS[3] + " ] - Destroyer", "null"};
     private static String board[][] = new String[LENGTH_BOARD][LENGTH_BOARD], board2[][] = new String[LENGTH_BOARD][LENGTH_BOARD];
@@ -30,17 +30,17 @@ public class CompressedVersion {
             System.out.printf("[ R ] - Player x Machine\n[ M ] - Player x Player\nOption: ");
             option = s.next().toUpperCase();
             switch (option) {
-                case "R":
+                case "R"-> {
                     gameMode = colors[4] + "Player x Machine" + colors[0];
                     ChooseNamePlayers();
                     PlayGame();
-                    break;
-                case "M":
+                }
+                case "M"-> {
                     gameMode = "Player x Player";
                     ChooseNamePlayers();
                     PlayGame();
-                    break;
-                default: System.out.printf(TextOptionIncorrect());
+                }
+                default-> System.out.printf(TextOptionIncorrect());
             }
         }
     }
@@ -73,7 +73,7 @@ public class CompressedVersion {
         return subtitles[i];
     }
     public static void ViewBoard(String b[][]) {
-        System.out.println(colors[8] + "     A   B   C   D   E   F   G   H   I   J" + colors[0] + "\n   "+ divider);
+        System.out.println(colors[8] + spaceLetters +"A   B   C   D   E   F   G   H   I   J" + colors[0] + "\n   "+ divider);
         for (int i = 0; i < LENGTH_BOARD; i++) {
             System.out.printf(colors[8] + i + colors[0] + "  ");
             for (int j = 0; j < LENGTH_BOARD; j++) System.out.printf(pipe +" %s ", b[i][j]);
@@ -159,8 +159,7 @@ public class CompressedVersion {
                 y = r.nextInt(LENGTH_BOARD);
                 System.out.printf("%s shoot in the coordinate X: %d and Y: %s\n", p2, x, ALF[y]);
             }
-            String target = turn ? board[x][y] : board2[x][y];
-            String fakeTarget = turn ? fakeBoard[x][y] : fakeBoard2[x][y];
+            String target = turn ? board[x][y] : board2[x][y], fakeTarget = turn ? fakeBoard[x][y] : fakeBoard2[x][y];;
             if (TargetAlreadyReached(fakeTarget)) {
                 System.out.printf("%s you already shot here, choose another coordinate!!\n", turn ? p1 : p2);
 
@@ -212,14 +211,13 @@ public class CompressedVersion {
         return i != -1 ? ships[i] : UNCHARTED;
     }
     public static void ResetBattleShip() {
-        while (!option.equals("Y") || !option.equals("N")) {
+        while ((!option.equals("Y")) || (!option.equals("N"))) {
             System.out.printf("\nDo you want to play again? [ Y ] - Yes [ N ] - No\nOption: ");
             option = s.next().toUpperCase();
             switch (option) {
-                case "Y": StartBoard();
-                case "N":
-                    System.exit(0);
-                default: System.out.printf(TextOptionIncorrect());
+                case "Y"-> StartBoard();
+                case "N"-> System.exit(0);
+                default-> System.out.printf(TextOptionIncorrect());
             }
         }
     }
